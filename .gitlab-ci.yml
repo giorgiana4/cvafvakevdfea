@@ -1,0 +1,45 @@
+stages:
+  - build
+  - test
+  - checkstyle
+  - deploy
+
+build:
+  stage: build
+  image: maven:3.6.3-jdk-8
+  script:
+    - mvn clean package
+
+test:
+    stage: test
+    image: maven:3.6.3-jdk-8
+    script:
+    - echo "Test DEMO app"
+    - mvn test && mvn jacoco:report
+    coverage: "/Total.*?([0-9]{1,3})%/"
+
+
+checkstyle:
+    stage: checkstyle
+    image: maven:3.6.3-jdk-8
+    script:
+    - echo "Checkstyle DEMO app"
+    - mvn checkstyle:check
+
+variables:
+  DB_IP: ec2-63-34-153-52.eu-west-1.compute.amazonaws.com
+  DB_PORT: 5432
+  DB_USER: upmgqjrcdrycpi
+  DB_PASSWORD: 4069da6b8b114c21285938e38fa6532e333d4b4dbba3f75d7d035b0b66a4f1c3
+  DB_DBNAME: dc7e43r93f09d3
+
+deploy:
+  stage: deploy
+  image: ruby:2.6
+  script:
+    - apt-get update -qy
+    - apt-get install -y ruby-dev
+    - gem install dpl
+    - dpl --provider=heroku --app=disiproject2022 --api-key=$HEROKU_API_KEY
+  only:
+    - main
